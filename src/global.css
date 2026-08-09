@@ -837,29 +837,27 @@ body {
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* App Update Top Banner */
-.app-update-banner {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.16) 100%);
+/* App Update Top Compact Header Banner */
+.app-update-compact-banner {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.14) 0%, rgba(99, 102, 241, 0.2) 100%);
   border: 1px solid rgba(99, 102, 241, 0.35);
-  border-radius: var(--radius-lg);
-  padding: 14px 20px;
-  margin-bottom: 24px;
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.12);
-  animation: fadeInDown 0.3s ease-out;
-  backdrop-filter: blur(12px);
+  gap: 14px;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+  backdrop-filter: blur(10px);
+  animation: fadeInDown 0.25s ease-out;
 }
 
 .app-update-progress-bar {
-  height: 6px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   overflow: hidden;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .app-update-progress-fill {

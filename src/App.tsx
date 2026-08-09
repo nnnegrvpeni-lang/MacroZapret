@@ -619,80 +619,55 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="main-content" id="main_container">
-
-        {/* APP AUTO-UPDATE TOP BANNER */}
-        {appUpdateStatus !== 'idle' && (
-          <div className="app-update-banner">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-              <div style={{ 
-                width: '38px', 
-                height: '38px', 
-                borderRadius: '10px', 
-                background: 'rgba(59, 130, 246, 0.2)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                color: '#60a5fa',
-                flexShrink: 0 
-              }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: '20px', height: '20px' }}>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>
-                  {appUpdateStatus === 'available' && `Доступно новое обновление MacroZapret v${appUpdateVersion}!`}
-                  {appUpdateStatus === 'downloading' && `Загрузка обновления v${appUpdateVersion}... ${appUpdateProgress}%`}
-                  {appUpdateStatus === 'downloaded' && `Обновление v${appUpdateVersion} готово к установке!`}
-                  {appUpdateStatus === 'error' && `Ошибка обновления: ${appUpdateError}`}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  {appUpdateStatus === 'available' && 'Вышло новое обновление приложения на GitHub. Нажмите кнопку, чтобы обновиться.'}
-                  {appUpdateStatus === 'downloading' && 'Пожалуйста, подождите завершения загрузки установочного файла.'}
-                  {appUpdateStatus === 'downloaded' && 'Перезапустите приложение сейчас для автоматической установки новой версии.'}
-                  {appUpdateStatus === 'error' && 'Не удалось загрузить обновление с GitHub.'}
-                </div>
-                {appUpdateStatus === 'downloading' && (
-                  <div className="app-update-progress-bar">
-                    <div className="app-update-progress-fill" style={{ width: `${appUpdateProgress}%` }}></div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              {appUpdateStatus === 'available' && (
-                <button className="btn-primary" onClick={handleDownloadAppUpdate} style={{ padding: '8px 16px', fontSize: '0.8rem' }}>
-                  Скачать обновление
-                </button>
-              )}
-              {appUpdateStatus === 'downloaded' && (
-                <button className="btn-primary" onClick={handleInstallAppUpdate} style={{ padding: '8px 16px', fontSize: '0.8rem', background: 'var(--success)' }}>
-                  Перезапустить и установить
-                </button>
-              )}
-              <button 
-                className="btn-secondary" 
-                onClick={() => setAppUpdateStatus('idle')} 
-                style={{ padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                title="Скрыть"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px' }}>
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
         
         {/* VIEW 1: DASHBOARD */}
         {activeView === 'dashboard' && (
           <>
-            <header className="header" id="dashboard_header_section">
+            <header className="header" id="dashboard_header_section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
               <h1 className="page-title">Панель управления</h1>
+
+              {/* COMPACT UPDATE BADGE IN HEADER */}
+              {appUpdateStatus !== 'idle' && (
+                <div className="app-update-compact-banner">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: '16px', height: '16px', color: '#60a5fa' }}>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }} title={appUpdateError}>
+                      {appUpdateStatus === 'available' && `Доступно обновление v${appUpdateVersion}`}
+                      {appUpdateStatus === 'downloading' && `Загрузка... ${appUpdateProgress}%`}
+                      {appUpdateStatus === 'downloaded' && `Версия v${appUpdateVersion} готова!`}
+                      {appUpdateStatus === 'error' && (appUpdateError ? `Ошибка: ${appUpdateError}` : `Ошибка обновления`)}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {appUpdateStatus === 'available' && (
+                      <button className="btn-primary" onClick={handleDownloadAppUpdate} style={{ padding: '5px 12px', fontSize: '0.78rem' }}>
+                        Обновить
+                      </button>
+                    )}
+                    {appUpdateStatus === 'downloaded' && (
+                      <button className="btn-primary" onClick={handleInstallAppUpdate} style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'var(--success)' }}>
+                        Перезапустить
+                      </button>
+                    )}
+                    <button 
+                      className="btn-secondary" 
+                      onClick={() => setAppUpdateStatus('idle')} 
+                      style={{ padding: '5px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Закрыть"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '12px', height: '12px' }}>
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
             </header>
 
             {!isAdmin && (
