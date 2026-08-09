@@ -98,11 +98,61 @@ export default function App() {
   const [autoScrollLogs, setAutoScrollLogs] = useState<boolean>(true);
   const [copiedLogs, setCopiedLogs] = useState<boolean>(false);
 
-  // Customization state
-  const [themePreset, setThemePreset] = useState<'cyber' | 'emerald' | 'purple' | 'amber' | 'crimson'>('cyber');
-  const [customAccent, setCustomAccent] = useState<string>('#3b82f6');
+  // MacroSortirovka Customization Theme state
+  const defaultColors = {
+    primary: '#3b82f6',
+    bgApp: '#070a13',
+    bgSidebar: '#0b0f19',
+    bgCard: '#161e34',
+    textMain: '#f3f4f6'
+  };
+
+  const [themeColors, setThemeColors] = useState(() => {
+    try {
+      const saved = localStorage.getItem('macrozapret_theme');
+      return saved ? JSON.parse(saved) : defaultColors;
+    } catch {
+      return defaultColors;
+    }
+  });
+
+  const [activePreset, setActivePreset] = useState<string>('space');
+  const [enableGlow, setEnableGlow] = useState<boolean>(true);
   const [showAmbientOrbs, setShowAmbientOrbs] = useState<boolean>(true);
-  const [enablePowerRipples, setEnablePowerRipples] = useState<boolean>(true);
+  const [themeSavedToast, setThemeSavedToast] = useState<boolean>(false);
+
+  // Apply theme to CSS Root variables
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--primary', themeColors.primary);
+    root.style.setProperty('--bg-app', themeColors.bgApp);
+    root.style.setProperty('--bg-sidebar', themeColors.bgSidebar);
+    root.style.setProperty('--bg-card', themeColors.bgCard);
+    root.style.setProperty('--text-main', themeColors.textMain);
+
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '59, 130, 246';
+    };
+    const rgb = hexToRgb(themeColors.primary);
+    root.style.setProperty('--primary-rgb', rgb);
+    root.style.setProperty('--primary-glow', `rgba(${rgb}, 0.25)`);
+
+    localStorage.setItem('macrozapret_theme', JSON.stringify(themeColors));
+  }, [themeColors]);
+
+  const presets = {
+    space: { primary: '#3b82f6', bgApp: '#070a13', bgSidebar: '#0b0f19', bgCard: '#161e34', textMain: '#f3f4f6' },
+    emerald: { primary: '#10b981', bgApp: '#051510', bgSidebar: '#082119', bgCard: '#0d3326', textMain: '#f3f4f6' },
+    purple: { primary: '#8b5cf6', bgApp: '#0b0714', bgSidebar: '#120b21', bgCard: '#1c1233', textMain: '#f3f4f6' },
+    amber: { primary: '#f59e0b', bgApp: '#140d05', bgSidebar: '#1f1408', bgCard: '#33220c', textMain: '#f3f4f6' },
+    crimson: { primary: '#ef4444', bgApp: '#140507', bgSidebar: '#21080b', bgCard: '#330d12', textMain: '#f3f4f6' },
+  };
+
+  const handleApplyPreset = (presetKey: keyof typeof presets) => {
+    setActivePreset(presetKey);
+    setThemeColors(presets[presetKey]);
+  };
 
   const consoleRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -565,10 +615,12 @@ export default function App() {
   return (
     <div className="app-container" id="main_layout">
       {/* Ambient Aurora Background Orbs */}
-      <div className="ambient-bg">
-        <div className="aurora-orb aurora-orb-1"></div>
-        <div className="aurora-orb aurora-orb-2"></div>
-      </div>
+      {showAmbientOrbs && (
+        <div className="ambient-bg">
+          <div className="aurora-orb aurora-orb-1" style={{ background: `radial-gradient(circle, ${themeColors.primary} 0%, #6366f1 100%)` }}></div>
+          <div className="aurora-orb aurora-orb-2"></div>
+        </div>
+      )}
 
       {/* Sidebar Navigation */}
       <nav className="sidebar" id="sidebar_menu">
@@ -769,7 +821,7 @@ export default function App() {
                   </button>
 
                   {/* Pulsating Ripple Rings for running state */}
-                  {enablePowerRipples && (
+                  {enableGlow && (
                     <>
                       <div className="power-ripple-ring"></div>
                       <div className="power-ripple-ring"></div>
@@ -1420,14 +1472,14 @@ export default function App() {
           </>
         )}
 
-        {/* VIEW 6: CUSTOMIZATION */}
+        {/* VIEW 6: CUSTOMIZATION (MacroSortirovka System) */}
         {activeView === 'customization' && (
           <>
             <header className="header" id="customization_header_section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div>
-                <h1 className="page-title">Кастомизация и оформление</h1>
+                <h1 className="page-title">Кастомизация</h1>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Персонализация цветовых тем, эффектов неонового свечения и интерфейса
+                  Персонализация цветовых тем, эффектов неонового свечения и макета
                 </div>
               </div>
 
@@ -1476,96 +1528,29 @@ export default function App() {
             </header>
 
             <div className="customization-grid">
-              {/* Left Column: Theme Settings & Presets */}
+              {/* Left Column: Theme Settings & Color Pickers */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 
-                {/* Card 1: Theme Presets */}
+                {/* 1. Visual Effects */}
                 <section className="settings-card">
-                  <h3 className="settings-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '18px', height: '18px', color: '#60a5fa' }}><path d="M12 22C17.5228 22 22 17.5228 22 12C22 9.273 20.9 6.802 19.122 5C17.2 3.12 14.73 2 12 2C6.47715 2 2 6.47715 2 12C2 14.725 3.12 17.2 5 19.122C6.802 20.9 9.273 22 12 22Z"/></svg>
-                    Готовые темы оформления
-                  </h3>
+                  <h3 className="settings-title">Визуальные эффекты</h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                    Выберите одну из готовых тем акцентного свечения интерфейса MacroZapret:
+                    Настройка дополнительных эффектов свечения и анимации интерфейса.
                   </p>
-
-                  <div className="theme-presets-grid">
-                    <div 
-                      className={`theme-preset-card ${themePreset === 'cyber' ? 'active' : ''}`}
-                      onClick={() => { setThemePreset('cyber'); setCustomAccent('#3b82f6'); }}
-                    >
-                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1)' }}></div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Cyber Blue</span>
-                    </div>
-
-                    <div 
-                      className={`theme-preset-card ${themePreset === 'emerald' ? 'active' : ''}`}
-                      onClick={() => { setThemePreset('emerald'); setCustomAccent('#10b981'); }}
-                    >
-                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}></div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Emerald Matrix</span>
-                    </div>
-
-                    <div 
-                      className={`theme-preset-card ${themePreset === 'purple' ? 'active' : ''}`}
-                      onClick={() => { setThemePreset('purple'); setCustomAccent('#8b5cf6'); }}
-                    >
-                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}></div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Royal Purple</span>
-                    </div>
-
-                    <div 
-                      className={`theme-preset-card ${themePreset === 'amber' ? 'active' : ''}`}
-                      onClick={() => { setThemePreset('amber'); setCustomAccent('#f59e0b'); }}
-                    >
-                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}></div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Solar Amber</span>
-                    </div>
-
-                    <div 
-                      className={`theme-preset-card ${themePreset === 'crimson' ? 'active' : ''}`}
-                      onClick={() => { setThemePreset('crimson'); setCustomAccent('#ef4444'); }}
-                    >
-                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #ef4444, #9333ea)' }}></div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Crimson Red</span>
-                    </div>
-                  </div>
-                </section>
-
-                {/* Card 2: Custom Color Picker */}
-                <section className="settings-card">
-                  <h3 className="settings-title">Пользовательский цвет акцента</h3>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                    Настройте собственный цвет неона и отсветов элементов интерфейса:
-                  </p>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 18px', borderRadius: 'var(--radius-md)' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 500 }}>Выбор акцентного цвета:</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{customAccent}</span>
-                      <input 
-                        type="color" 
-                        value={customAccent} 
-                        onChange={(e) => { setCustomAccent(e.target.value); setThemePreset('cyber'); }}
-                        style={{ border: 'none', width: '36px', height: '36px', borderRadius: '8px', cursor: 'pointer', background: 'none' }}
-                      />
-                    </div>
-                  </div>
-                </section>
-
-                {/* Card 3: Visual Effects Options */}
-                <section className="settings-card">
-                  <h3 className="settings-title">Визуальные спецэффекты</h3>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                    Включение/выключение фоновой анимации и энергетических волн:
-                  </p>
-
+                  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 18px', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff' }}>Анимированный фон (Aurora Orbs)</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Плавающие анимированные фоновые орбы и градиенты</span>
-                      </div>
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-main)' }}>Включить неоновую подсветку (glow)</span>
+                      <input 
+                        type="checkbox" 
+                        checked={enableGlow} 
+                        onChange={(e) => setEnableGlow(e.target.checked)} 
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-main)' }}>Анимированный фон (Aurora Orbs)</span>
                       <input 
                         type="checkbox" 
                         checked={showAmbientOrbs} 
@@ -1573,54 +1558,239 @@ export default function App() {
                         style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                       />
                     </label>
+                  </div>
+                </section>
 
-                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 18px', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff' }}>Энергетические волны кнопки питания</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Пульсирующие кольца обхода при активности</span>
+                {/* 2. Theme Presets */}
+                <section className="settings-card">
+                  <h3 className="settings-title">Готовые темы оформления</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Быстрый выбор готовых цветовых палитр:
+                  </p>
+
+                  <div className="theme-presets-grid">
+                    <div 
+                      className={`theme-preset-card ${activePreset === 'space' ? 'active' : ''}`}
+                      onClick={() => handleApplyPreset('space')}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1)' }}></div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>Космос</span>
+                    </div>
+
+                    <div 
+                      className={`theme-preset-card ${activePreset === 'emerald' ? 'active' : ''}`}
+                      onClick={() => handleApplyPreset('emerald')}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}></div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>Изумруд</span>
+                    </div>
+
+                    <div 
+                      className={`theme-preset-card ${activePreset === 'purple' ? 'active' : ''}`}
+                      onClick={() => handleApplyPreset('purple')}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}></div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>Фиолетовый</span>
+                    </div>
+
+                    <div 
+                      className={`theme-preset-card ${activePreset === 'amber' ? 'active' : ''}`}
+                      onClick={() => handleApplyPreset('amber')}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}></div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>Янтарь</span>
+                    </div>
+
+                    <div 
+                      className={`theme-preset-card ${activePreset === 'crimson' ? 'active' : ''}`}
+                      onClick={() => handleApplyPreset('crimson')}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #ef4444, #9333ea)' }}></div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>Рубин</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 3. Create Custom Theme */}
+                <section className="settings-card">
+                  <h3 className="settings-title">Создать свою тему</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Настройте цвета каждого элемента индивидуально. Изменения сразу отобразятся в превью справа.
+                  </p>
+
+                  <div className="color-pickers-list">
+                    <div className="color-picker-item">
+                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Главный цвет акцентов:</label>
+                      <div className="color-picker-wrapper">
+                        <span className="color-hex-label">{themeColors.primary}</span>
+                        <input 
+                          type="color" 
+                          value={themeColors.primary} 
+                          onChange={(e) => { setActivePreset('custom'); setThemeColors({ ...themeColors, primary: e.target.value }); }}
+                          style={{ border: 'none', width: '36px', height: '36px', borderRadius: '6px', cursor: 'pointer', background: 'none', padding: 0 }}
+                        />
                       </div>
-                      <input 
-                        type="checkbox" 
-                        checked={enablePowerRipples} 
-                        onChange={(e) => setEnablePowerRipples(e.target.checked)} 
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
-                    </label>
+                    </div>
+
+                    <div className="color-picker-item">
+                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Цвет фона приложения:</label>
+                      <div className="color-picker-wrapper">
+                        <span className="color-hex-label">{themeColors.bgApp}</span>
+                        <input 
+                          type="color" 
+                          value={themeColors.bgApp} 
+                          onChange={(e) => { setActivePreset('custom'); setThemeColors({ ...themeColors, bgApp: e.target.value }); }}
+                          style={{ border: 'none', width: '36px', height: '36px', borderRadius: '6px', cursor: 'pointer', background: 'none', padding: 0 }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="color-picker-item">
+                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Цвет боковой панели:</label>
+                      <div className="color-picker-wrapper">
+                        <span className="color-hex-label">{themeColors.bgSidebar}</span>
+                        <input 
+                          type="color" 
+                          value={themeColors.bgSidebar} 
+                          onChange={(e) => { setActivePreset('custom'); setThemeColors({ ...themeColors, bgSidebar: e.target.value }); }}
+                          style={{ border: 'none', width: '36px', height: '36px', borderRadius: '6px', cursor: 'pointer', background: 'none', padding: 0 }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="color-picker-item">
+                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Цвет карточек и панелей:</label>
+                      <div className="color-picker-wrapper">
+                        <span className="color-hex-label">{themeColors.bgCard}</span>
+                        <input 
+                          type="color" 
+                          value={themeColors.bgCard} 
+                          onChange={(e) => { setActivePreset('custom'); setThemeColors({ ...themeColors, bgCard: e.target.value }); }}
+                          style={{ border: 'none', width: '36px', height: '36px', borderRadius: '6px', cursor: 'pointer', background: 'none', padding: 0 }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="color-picker-item">
+                      <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Цвет главного текста:</label>
+                      <div className="color-picker-wrapper">
+                        <span className="color-hex-label">{themeColors.textMain}</span>
+                        <input 
+                          type="color" 
+                          value={themeColors.textMain} 
+                          onChange={(e) => { setActivePreset('custom'); setThemeColors({ ...themeColors, textMain: e.target.value }); }}
+                          style={{ border: 'none', width: '36px', height: '36px', borderRadius: '6px', cursor: 'pointer', background: 'none', padding: 0 }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+                    <button 
+                      type="button" 
+                      className="btn-secondary" 
+                      style={{ flex: 1, padding: '10px' }}
+                      onClick={() => handleApplyPreset('space')}
+                    >
+                      Сбросить цвета
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn-primary" 
+                      style={{ flex: 1.5, padding: '10px', background: themeColors.primary }}
+                      onClick={() => {
+                        localStorage.setItem('macrozapret_theme', JSON.stringify(themeColors));
+                        setThemeSavedToast(true);
+                        setTimeout(() => setThemeSavedToast(false), 2500);
+                      }}
+                    >
+                      {themeSavedToast ? 'Тема сохранена!' : 'Применить и сохранить'}
+                    </button>
                   </div>
                 </section>
               </div>
 
-              {/* Right Column: Live Preview Card */}
+              {/* Right Column: Live Mockup Preview Frame (1-to-1 MacroSortirovka) */}
               <div style={{ position: 'sticky', top: '0' }}>
                 <section className="settings-card">
                   <h3 className="settings-title">Живой предпросмотр</h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                    Как выбранные цвета и темы выглядят на интерфейсе:
+                    Посмотрите, как новая тема выглядит на макете приложения.
                   </p>
 
-                  <div style={{ background: '#070912', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: customAccent }}></div>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff' }}>MacroZapret Pro</span>
+                  <div style={{ 
+                    display: 'flex', 
+                    height: '280px', 
+                    borderRadius: 'var(--radius-md)', 
+                    overflow: 'hidden', 
+                    border: '1px solid var(--border-color)', 
+                    fontSize: '11px', 
+                    backgroundColor: themeColors.bgApp, 
+                    color: themeColors.textMain 
+                  }}>
+                    {/* Mock Sidebar */}
+                    <div style={{ 
+                      width: '85px', 
+                      backgroundColor: themeColors.bgSidebar, 
+                      borderRight: '1px solid rgba(255,255,255,0.05)', 
+                      padding: '10px', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '12px' 
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', color: themeColors.textMain, fontSize: '9px' }}>
+                        <div style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: themeColors.primary }}></div>
+                        <span>Macro</span>
                       </div>
-                      <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '10px', background: `${customAccent}22`, color: customAccent, border: `1px solid ${customAccent}44` }}>ПРЕВЬЮ</span>
-                    </div>
-
-                    {/* Mock Power Button */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0', gap: '10px' }}>
-                      <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: `radial-gradient(circle, ${customAccent}33 0%, #080a12 100%)`, border: `1px solid ${customAccent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 20px ${customAccent}44` }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke={customAccent} strokeWidth="2.5" style={{ width: '22px', height: '22px' }}>
-                          <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderLeft: `2px solid ${themeColors.primary}`, padding: '4px 6px', borderRadius: '2px', fontWeight: 500 }}>Панель</div>
+                        <div style={{ padding: '4px 6px', opacity: 0.5 }}>Списки</div>
+                        <div style={{ padding: '4px 6px', opacity: 0.5 }}>Логи</div>
                       </div>
-                      <span style={{ fontSize: '0.72rem', fontWeight: 600, color: customAccent }}>ОБХОД АКТИВЕН</span>
                     </div>
-
-                    {/* Mock Button */}
-                    <button className="btn-primary" style={{ width: '100%', background: customAccent, border: 'none', padding: '8px', fontSize: '0.78rem', borderRadius: '8px' }}>
-                      Тестовая кнопка
-                    </button>
+                    
+                    {/* Mock Main Body */}
+                    <div style={{ flex: 1, padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: themeColors.bgApp }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, fontSize: '12px' }}>Панель управления</span>
+                        <div style={{ backgroundColor: themeColors.primary, color: '#fff', padding: '3px 8px', borderRadius: '4px', fontWeight: 600, fontSize: '9px', boxShadow: enableGlow ? `0 0 8px ${themeColors.primary}66` : 'none' }}>
+                          Включено
+                        </div>
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        {/* Card 1 */}
+                        <div style={{ backgroundColor: themeColors.bgCard, border: '1px solid rgba(255,255,255,0.05)', padding: '8px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <div style={{ width: '12px', height: '12px', backgroundColor: themeColors.primary, borderRadius: '2px', opacity: 0.9 }}></div>
+                            <div>
+                              <div style={{ fontWeight: 600 }}>WinDivert</div>
+                              <div style={{ opacity: 0.5, fontSize: '7px' }}>general (ALT).bat</div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '4px', fontSize: '8px', opacity: 0.8 }}>
+                            <span>Обход</span>
+                            <div style={{ width: '16px', height: '8px', borderRadius: '4px', backgroundColor: themeColors.primary, position: 'relative' }}>
+                              <span style={{ position: 'absolute', right: '1px', top: '1px', width: '6px', height: '6px', borderRadius: '50%', background: '#fff' }}></span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Card 2 (Stats Donut Mock) */}
+                        <div style={{ backgroundColor: themeColors.bgCard, border: '1px solid rgba(255,255,255,0.05)', padding: '8px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <div style={{ fontWeight: 600 }}>Сервисы</div>
+                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: themeColors.primary }}>100%</div>
+                            <div style={{ opacity: 0.5, fontSize: '7px' }}>доступны</div>
+                          </div>
+                          <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: `3px solid rgba(255,255,255,0.05)`, borderTopColor: themeColors.primary, transform: 'rotate(45deg)' }}></div>
+                        </div>
+                      </div>
+                      
+                      <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.05)', borderLeft: `3px solid ${themeColors.primary}`, padding: '6px 8px', borderRadius: '4px', opacity: 0.9, fontSize: '8px' }}>
+                        <strong>Служба активна:</strong> перехват пакетов запущен
+                      </div>
+                    </div>
                   </div>
                 </section>
               </div>

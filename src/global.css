@@ -599,15 +599,24 @@ body {
   background: #111420;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
-  max-height: 240px;
+  max-height: min(180px, 30vh);
   overflow-y: auto;
   z-index: 99999;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(16px);
   animation: fadeInDown 0.2s ease-out;
+  padding: 6px;
 }
 
-/* Customization View Styling */
+.custom-select-menu::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-select-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+/* Customization View Styling (MacroSortirovka System) */
 .customization-grid {
   display: grid;
   grid-template-columns: 1fr 340px;
@@ -623,8 +632,8 @@ body {
 
 .theme-presets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
   margin-top: 10px;
 }
 
@@ -632,11 +641,11 @@ body {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
@@ -649,17 +658,45 @@ body {
 }
 
 .theme-preset-card.active {
-  border-color: #3b82f6;
+  border-color: var(--primary, #3b82f6);
   background: rgba(59, 130, 246, 0.12);
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
 }
 
 .theme-color-circle {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.color-pickers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.color-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+}
+
+.color-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-hex-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .custom-select-option {
