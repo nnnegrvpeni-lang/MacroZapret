@@ -31,7 +31,7 @@ declare global {
   }
 }
 
-type View = 'dashboard' | 'lists' | 'checker' | 'logs' | 'settings';
+type View = 'dashboard' | 'lists' | 'checker' | 'logs' | 'customization' | 'settings';
 type ListName = 'list-general-user.txt' | 'list-exclude-user.txt' | 'list-general.txt' | 'list-exclude.txt';
 
 export default function App() {
@@ -97,6 +97,12 @@ export default function App() {
   const [logSearchQuery, setLogSearchQuery] = useState<string>('');
   const [autoScrollLogs, setAutoScrollLogs] = useState<boolean>(true);
   const [copiedLogs, setCopiedLogs] = useState<boolean>(false);
+
+  // Customization state
+  const [themePreset, setThemePreset] = useState<'cyber' | 'emerald' | 'purple' | 'amber' | 'crimson'>('cyber');
+  const [customAccent, setCustomAccent] = useState<string>('#3b82f6');
+  const [showAmbientOrbs, setShowAmbientOrbs] = useState<boolean>(true);
+  const [enablePowerRipples, setEnablePowerRipples] = useState<boolean>(true);
 
   const consoleRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -623,6 +629,20 @@ export default function App() {
             Консоль логов
           </li>
           <li 
+            id="nav_customization"
+            className={`nav-item ${activeView === 'customization' ? 'active' : ''}`}
+            onClick={() => setActiveView('customization')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 9.273 20.9 6.802 19.122 5C17.2 3.12 14.73 2 12 2C6.47715 2 2 6.47715 2 12C2 14.725 3.12 17.2 5 19.122C6.802 20.9 9.273 22 12 22Z"></path>
+              <circle cx="7.5" cy="10.5" r="1.5" fill="currentColor"></circle>
+              <circle cx="11.5" cy="7.5" r="1.5" fill="currentColor"></circle>
+              <circle cx="16.5" cy="9.5" r="1.5" fill="currentColor"></circle>
+              <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor"></circle>
+            </svg>
+            Кастомизация
+          </li>
+          <li 
             id="nav_settings"
             className={`nav-item ${activeView === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveView('settings')}
@@ -749,9 +769,13 @@ export default function App() {
                   </button>
 
                   {/* Pulsating Ripple Rings for running state */}
-                  <div className="power-ripple-ring"></div>
-                  <div className="power-ripple-ring"></div>
-                  <div className="power-ripple-ring"></div>
+                  {enablePowerRipples && (
+                    <>
+                      <div className="power-ripple-ring"></div>
+                      <div className="power-ripple-ring"></div>
+                      <div className="power-ripple-ring"></div>
+                    </>
+                  )}
 
                   {/* Rotating Arc Ring for starting/stopping state */}
                   <div className="power-spin-ring"></div>
@@ -1391,6 +1415,214 @@ export default function App() {
                     Консоль логов пуста. Запустите обход или выполните действия для отображения событий.
                   </div>
                 )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* VIEW 6: CUSTOMIZATION */}
+        {activeView === 'customization' && (
+          <>
+            <header className="header" id="customization_header_section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div>
+                <h1 className="page-title">Кастомизация и оформление</h1>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Персонализация цветовых тем, эффектов неонового свечения и интерфейса
+                </div>
+              </div>
+
+              {/* COMPACT UPDATE BADGE IN HEADER */}
+              {appUpdateStatus !== 'idle' && (
+                <div className="app-update-compact-banner">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: '16px', height: '16px', color: '#60a5fa' }}>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }} title={appUpdateError}>
+                      {appUpdateStatus === 'available' && `Доступно обновление v${appUpdateVersion}`}
+                      {appUpdateStatus === 'downloading' && `Загрузка... ${appUpdateProgress}%`}
+                      {appUpdateStatus === 'downloaded' && `Версия v${appUpdateVersion} готова!`}
+                      {appUpdateStatus === 'error' && (appUpdateError ? `Ошибка: ${appUpdateError}` : `Ошибка обновления`)}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {appUpdateStatus === 'available' && (
+                      <button className="btn-primary" onClick={handleDownloadAppUpdate} style={{ padding: '5px 12px', fontSize: '0.78rem' }}>
+                        Обновить
+                      </button>
+                    )}
+                    {appUpdateStatus === 'downloaded' && (
+                      <button className="btn-primary" onClick={handleInstallAppUpdate} style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'var(--success)' }}>
+                        Перезапустить
+                      </button>
+                    )}
+                    <button 
+                      className="btn-secondary" 
+                      onClick={() => setAppUpdateStatus('idle')} 
+                      style={{ padding: '5px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Закрыть"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '12px', height: '12px' }}>
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </header>
+
+            <div className="customization-grid">
+              {/* Left Column: Theme Settings & Presets */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                
+                {/* Card 1: Theme Presets */}
+                <section className="settings-card">
+                  <h3 className="settings-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '18px', height: '18px', color: '#60a5fa' }}><path d="M12 22C17.5228 22 22 17.5228 22 12C22 9.273 20.9 6.802 19.122 5C17.2 3.12 14.73 2 12 2C6.47715 2 2 6.47715 2 12C2 14.725 3.12 17.2 5 19.122C6.802 20.9 9.273 22 12 22Z"/></svg>
+                    Готовые темы оформления
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Выберите одну из готовых тем акцентного свечения интерфейса MacroZapret:
+                  </p>
+
+                  <div className="theme-presets-grid">
+                    <div 
+                      className={`theme-preset-card ${themePreset === 'cyber' ? 'active' : ''}`}
+                      onClick={() => { setThemePreset('cyber'); setCustomAccent('#3b82f6'); }}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1)' }}></div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Cyber Blue</span>
+                    </div>
+
+                    <div 
+                      className={`theme-preset-card ${themePreset === 'emerald' ? 'active' : ''}`}
+                      onClick={() => { setThemePreset('emerald'); setCustomAccent('#10b981'); }}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}></div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Emerald Matrix</span>
+                    </div>
+
+                    <div 
+                      className={`theme-preset-card ${themePreset === 'purple' ? 'active' : ''}`}
+                      onClick={() => { setThemePreset('purple'); setCustomAccent('#8b5cf6'); }}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #8b5cf6, #ec4899)' }}></div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Royal Purple</span>
+                    </div>
+
+                    <div 
+                      className={`theme-preset-card ${themePreset === 'amber' ? 'active' : ''}`}
+                      onClick={() => { setThemePreset('amber'); setCustomAccent('#f59e0b'); }}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}></div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Solar Amber</span>
+                    </div>
+
+                    <div 
+                      className={`theme-preset-card ${themePreset === 'crimson' ? 'active' : ''}`}
+                      onClick={() => { setThemePreset('crimson'); setCustomAccent('#ef4444'); }}
+                    >
+                      <div className="theme-color-circle" style={{ background: 'linear-gradient(135deg, #ef4444, #9333ea)' }}></div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>Crimson Red</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Card 2: Custom Color Picker */}
+                <section className="settings-card">
+                  <h3 className="settings-title">Пользовательский цвет акцента</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Настройте собственный цвет неона и отсветов элементов интерфейса:
+                  </p>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 18px', borderRadius: 'var(--radius-md)' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 500 }}>Выбор акцентного цвета:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{customAccent}</span>
+                      <input 
+                        type="color" 
+                        value={customAccent} 
+                        onChange={(e) => { setCustomAccent(e.target.value); setThemePreset('cyber'); }}
+                        style={{ border: 'none', width: '36px', height: '36px', borderRadius: '8px', cursor: 'pointer', background: 'none' }}
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                {/* Card 3: Visual Effects Options */}
+                <section className="settings-card">
+                  <h3 className="settings-title">Визуальные спецэффекты</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Включение/выключение фоновой анимации и энергетических волн:
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 18px', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff' }}>Анимированный фон (Aurora Orbs)</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Плавающие анимированные фоновые орбы и градиенты</span>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        checked={showAmbientOrbs} 
+                        onChange={(e) => setShowAmbientOrbs(e.target.checked)} 
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 18px', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff' }}>Энергетические волны кнопки питания</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Пульсирующие кольца обхода при активности</span>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        checked={enablePowerRipples} 
+                        onChange={(e) => setEnablePowerRipples(e.target.checked)} 
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                    </label>
+                  </div>
+                </section>
+              </div>
+
+              {/* Right Column: Live Preview Card */}
+              <div style={{ position: 'sticky', top: '0' }}>
+                <section className="settings-card">
+                  <h3 className="settings-title">Живой предпросмотр</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                    Как выбранные цвета и темы выглядят на интерфейсе:
+                  </p>
+
+                  <div style={{ background: '#070912', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: customAccent }}></div>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff' }}>MacroZapret Pro</span>
+                      </div>
+                      <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '10px', background: `${customAccent}22`, color: customAccent, border: `1px solid ${customAccent}44` }}>ПРЕВЬЮ</span>
+                    </div>
+
+                    {/* Mock Power Button */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0', gap: '10px' }}>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: `radial-gradient(circle, ${customAccent}33 0%, #080a12 100%)`, border: `1px solid ${customAccent}`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 20px ${customAccent}44` }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke={customAccent} strokeWidth="2.5" style={{ width: '22px', height: '22px' }}>
+                          <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 600, color: customAccent }}>ОБХОД АКТИВЕН</span>
+                    </div>
+
+                    {/* Mock Button */}
+                    <button className="btn-primary" style={{ width: '100%', background: customAccent, border: 'none', padding: '8px', fontSize: '0.78rem', borderRadius: '8px' }}>
+                      Тестовая кнопка
+                    </button>
+                  </div>
+                </section>
               </div>
             </div>
           </>
