@@ -328,15 +328,15 @@ ipcMain.handle('zapret:download', async () => {
     return { success: false, error: 'No download URL found' };
   }
 
-  // Backup user lists if folder exists
+  // Backup ALL custom lists in zapret/lists if folder exists
   const listDir = path.join(ZAPRET_DIR, 'lists');
   const backups = {};
   if (fs.existsSync(listDir)) {
-    logToFrontend('Backing up custom lists...');
+    logToFrontend('Сохранение всех списков (zapret/lists)...');
     const listFiles = fs.readdirSync(listDir);
     for (const file of listFiles) {
-      if (file.endsWith('-user.txt')) {
-        const fullPath = path.join(listDir, file);
+      const fullPath = path.join(listDir, file);
+      if (fs.statSync(fullPath).isFile()) {
         backups[file] = fs.readFileSync(fullPath, 'utf8');
       }
     }

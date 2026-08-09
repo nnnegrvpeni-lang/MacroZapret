@@ -31,7 +31,7 @@ declare global {
   }
 }
 
-type View = 'dashboard' | 'lists' | 'settings' | 'checker';
+type View = 'dashboard' | 'lists' | 'checker' | 'logs' | 'settings';
 type ListName = 'list-general-user.txt' | 'list-exclude-user.txt' | 'list-general.txt' | 'list-exclude.txt';
 
 export default function App() {
@@ -43,7 +43,6 @@ export default function App() {
   const [selectedStrategy, setSelectedStrategy] = useState<string>('');
   const [logs, setLogs] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean>(true);
-  const [showLogs, setShowLogs] = useState<boolean>(false);
   
   // Custom dropdowns states
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -92,6 +91,12 @@ export default function App() {
   const [appUpdateStatus, setAppUpdateStatus] = useState<'idle' | 'available' | 'downloading' | 'downloaded' | 'error'>('idle');
   const [appUpdateError, setAppUpdateError] = useState<string>('');
   const [isCheckingAppUpdate, setIsCheckingAppUpdate] = useState<boolean>(false);
+
+  // Log console states
+  const [logFilter, setLogFilter] = useState<'all' | 'error' | 'success'>('all');
+  const [logSearchQuery, setLogSearchQuery] = useState<string>('');
+  const [autoScrollLogs, setAutoScrollLogs] = useState<boolean>(true);
+  const [copiedLogs, setCopiedLogs] = useState<boolean>(false);
 
   const consoleRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -256,16 +261,30 @@ export default function App() {
 
   // Smart auto-scroll for terminal logs
   useEffect(() => {
+    if (!autoScrollLogs) return;
     const el = consoleRef.current;
     if (el) {
-      // If user is scrolled up, do not force scroll down
-      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-      // If it is the first log entry or we are near the bottom, scroll to bottom
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
       if (isNearBottom || logs === '' || logs.split('\n').length <= 2) {
         el.scrollTop = el.scrollHeight;
       }
     }
-  }, [logs]);
+  }, [logs, autoScrollLogs]);
+
+  // Log line color classifier
+  const getLogLineClass = (text: string) => {
+    if (text.includes('❌') || text.includes('Error') || text.includes('Ошибка') || text.includes('failed')) return 'log-line-error';
+    if (text.includes('===') || text.includes('успешно') || text.includes('Successfully') || text.includes('complete')) return 'log-line-success';
+    if (text.includes('⚠️') || text.includes('Внимание') || text.includes('Warning')) return 'log-line-warning';
+    if (text.includes('Starting strategy') || text.includes('Проверяем') || text.includes('Подключение') || text.includes('Checking')) return 'log-line-info';
+    return 'log-line-default';
+  };
+
+  const handleCopyLogs = () => {
+    navigator.clipboard.writeText(logs);
+    setCopiedLogs(true);
+    setTimeout(() => setCopiedLogs(false), 2000);
+  };
 
 
   // Load strategies
@@ -587,6 +606,17 @@ export default function App() {
             Проверка режимов
           </li>
           <li 
+            id="nav_logs"
+            className={`nav-item ${activeView === 'logs' ? 'active' : ''}`}
+            onClick={() => setActiveView('logs')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="4 17 10 11 4 5" />
+              <line x1="12" y1="19" x2="20" y2="19" />
+            </svg>
+            Консоль логов
+          </li>
+          <li 
             id="nav_settings"
             className={`nav-item ${activeView === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveView('settings')}
@@ -681,15 +711,15 @@ export default function App() {
               </div>
             )}
 
-            <div className={`dashboard-grid ${!showLogs ? 'no-logs' : ''}`} id="dashboard_grid_layout">
-              {/* Left Card: Status & Controls */}
+            <div style={{ maxWidth: '520px', margin: '20px auto 0 auto', width: '100%' }} id="dashboard_grid_layout">
+              {/* Central Card: Status & Controls */}
               <section className="panel-container" id="status_control_panel">
                 <div className="panel-header">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                   Состояние
                 </div>
                 
-                <div className="status-card">
+                <div className="status-card" style={{ height: '360px' }}>
                   <div className="power-btn-container">
                     <button 
                       id="toggle_zapret_btn"
@@ -735,42 +765,8 @@ export default function App() {
                       </div>
                     )}
                   </div>
-
-                  <button 
-                    onClick={() => setShowLogs(!showLogs)} 
-                    className="terminal-btn-clear" 
-                    style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', width: '100%', maxWidth: '300px' }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px' }}>
-                      <polyline points="4 17 10 11 4 5"></polyline>
-                      <line x1="12" y1="19" x2="20" y2="19"></line>
-                    </svg>
-                    {showLogs ? 'Скрыть консоль отладки' : 'Показать консоль отладки'}
-                  </button>
                 </div>
               </section>
-
-              {/* Right Card: Logs terminal */}
-              {showLogs && (
-                <section className="panel-container terminal-card" id="logs_panel">
-                  <div className="panel-header">
-                    <span>
-                      {/* SVG Terminal Console icon */}
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', verticalAlign: 'middle', width: '16px', height: '16px' }}>
-                        <polyline points="4 17 10 11 4 5"></polyline>
-                        <line x1="12" y1="19" x2="20" y2="19"></line>
-                      </svg>
-                      Терминал отладки
-                    </span>
-                    <div className="terminal-actions">
-                      <button id="clear_logs_btn" className="terminal-btn-clear" onClick={() => setLogs('')}>Очистить</button>
-                    </div>
-                  </div>
-                  <div className="console-output" id="terminal_console" ref={consoleRef}>
-                    {logs || 'Консоль пуста. Запустите обход для отображения логов.'}
-                  </div>
-                </section>
-              )}
             </div>
           </>
         )}
@@ -1202,6 +1198,156 @@ export default function App() {
                   )}
                 </div>
               </section>
+            </div>
+          </>
+        )}
+
+        {/* VIEW 5: LOGS CONSOLE */}
+        {activeView === 'logs' && (
+          <>
+            <header className="header" id="logs_header_section" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div>
+                <h1 className="page-title">Консоль логов</h1>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Мониторинг событий и отладка winws
+                </div>
+              </div>
+
+              {/* COMPACT UPDATE BADGE IN HEADER */}
+              {appUpdateStatus !== 'idle' && (
+                <div className="app-update-compact-banner">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: '16px', height: '16px', color: '#60a5fa' }}>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff' }} title={appUpdateError}>
+                      {appUpdateStatus === 'available' && `Доступно обновление v${appUpdateVersion}`}
+                      {appUpdateStatus === 'downloading' && `Загрузка... ${appUpdateProgress}%`}
+                      {appUpdateStatus === 'downloaded' && `Версия v${appUpdateVersion} готова!`}
+                      {appUpdateStatus === 'error' && (appUpdateError ? `Ошибка: ${appUpdateError}` : `Ошибка обновления`)}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {appUpdateStatus === 'available' && (
+                      <button className="btn-primary" onClick={handleDownloadAppUpdate} style={{ padding: '5px 12px', fontSize: '0.78rem' }}>
+                        Обновить
+                      </button>
+                    )}
+                    {appUpdateStatus === 'downloaded' && (
+                      <button className="btn-primary" onClick={handleInstallAppUpdate} style={{ padding: '5px 12px', fontSize: '0.78rem', background: 'var(--success)' }}>
+                        Перезапустить
+                      </button>
+                    )}
+                    <button 
+                      className="btn-secondary" 
+                      onClick={() => setAppUpdateStatus('idle')} 
+                      style={{ padding: '5px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Закрыть"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '12px', height: '12px' }}>
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </header>
+
+            <div className="logs-view-container">
+              {/* Toolbar */}
+              <div className="logs-toolbar">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input 
+                    type="text" 
+                    className="logs-search-input" 
+                    placeholder="Поиск по логам..."
+                    value={logSearchQuery}
+                    onChange={(e) => setLogSearchQuery(e.target.value)}
+                  />
+
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button 
+                      className="btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.75rem', background: logFilter === 'all' ? 'rgba(59, 130, 246, 0.2)' : undefined, color: logFilter === 'all' ? '#fff' : undefined }}
+                      onClick={() => setLogFilter('all')}
+                    >
+                      Все
+                    </button>
+                    <button 
+                      className="btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.75rem', background: logFilter === 'error' ? 'rgba(239, 68, 68, 0.2)' : undefined, color: logFilter === 'error' ? '#f87171' : undefined }}
+                      onClick={() => setLogFilter('error')}
+                    >
+                      Ошибки
+                    </button>
+                    <button 
+                      className="btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.75rem', background: logFilter === 'success' ? 'rgba(16, 185, 129, 0.2)' : undefined, color: logFilter === 'success' ? '#34d399' : undefined }}
+                      onClick={() => setLogFilter('success')}
+                    >
+                      Успех
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button 
+                    className="btn-secondary" 
+                    style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onClick={handleCopyLogs}
+                    disabled={!logs}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '12px', height: '12px' }}>
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    {copiedLogs ? 'Скопировано!' : 'Копировать'}
+                  </button>
+
+                  <button 
+                    className="btn-secondary" 
+                    style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => setAutoScrollLogs(!autoScrollLogs)}
+                  >
+                    Автоскролл: {autoScrollLogs ? 'Вкл' : 'Выкл'}
+                  </button>
+
+                  <button 
+                    className="btn-secondary" 
+                    style={{ padding: '6px 12px', fontSize: '0.75rem', color: 'var(--danger)' }}
+                    onClick={() => setLogs('')}
+                    disabled={!logs}
+                  >
+                    Очистить
+                  </button>
+                </div>
+              </div>
+
+              {/* Logs Terminal Window */}
+              <div className="logs-terminal-window" ref={consoleRef}>
+                {logs ? (
+                  logs.split('\n').filter(line => {
+                    if (!line.trim()) return false;
+                    if (logSearchQuery && !line.toLowerCase().includes(logSearchQuery.toLowerCase())) return false;
+                    if (logFilter === 'error' && !line.includes('❌') && !line.includes('Error') && !line.includes('Ошибка') && !line.includes('failed')) return false;
+                    if (logFilter === 'success' && !line.includes('===') && !line.includes('успешно') && !line.includes('Successfully')) return false;
+                    return true;
+                  }).map((line, idx) => (
+                    <div key={idx} className={`log-line ${getLogLineClass(line)}`}>
+                      <span className="log-timestamp">&gt;</span>
+                      <span>{line}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '60px 0', fontSize: '0.85rem' }}>
+                    Консоль логов пуста. Запустите обход или выполните действия для отображения событий.
+                  </div>
+                )}
+              </div>
             </div>
           </>
         )}
