@@ -558,6 +558,12 @@ export default function App() {
 
   return (
     <div className="app-container" id="main_layout">
+      {/* Ambient Aurora Background Orbs */}
+      <div className="ambient-bg">
+        <div className="aurora-orb aurora-orb-1"></div>
+        <div className="aurora-orb aurora-orb-2"></div>
+      </div>
+
       {/* Sidebar Navigation */}
       <nav className="sidebar" id="sidebar_menu">
         <div className="brand" id="brand_header">
@@ -711,62 +717,100 @@ export default function App() {
               </div>
             )}
 
-            <div style={{ maxWidth: '520px', margin: '20px auto 0 auto', width: '100%' }} id="dashboard_grid_layout">
-              {/* Central Card: Status & Controls */}
-              <section className="panel-container" id="status_control_panel">
-                <div className="panel-header">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                  Состояние
-                </div>
-                
-                <div className="status-card" style={{ height: '360px' }}>
-                  <div className="power-btn-container">
-                    <button 
-                      id="toggle_zapret_btn"
-                      className={`power-btn ${zapretStatus}`}
-                      onClick={zapretStatus === 'running' ? handleStop : () => handleStart()}
-                      disabled={zapretStatus === 'starting' || zapretStatus === 'stopping'}
-                    >
-                      <svg viewBox="0 0 24 24">
-                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
+            <div className="hero-dashboard-container" id="dashboard_grid_layout">
+              {/* Main Hero Card: Power Switch & Strategy Dropdown */}
+              <section className="hero-status-card">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px', color: '#60a5fa' }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Фильтр трафика WinDivert
                   </div>
-                  
                   <div className={`status-badge ${zapretStatus}`} id="status_text_badge">
-                    {zapretStatus === 'running' && 'Активен'}
+                    <span className="status-badge-dot"></span>
+                    {zapretStatus === 'running' && 'Обход активен'}
                     {zapretStatus === 'stopped' && 'Выключен'}
-                    {zapretStatus === 'starting' && 'Запуск...'}
-                    {zapretStatus === 'stopping' && 'Остановка...'}
+                    {zapretStatus === 'starting' && 'Подключение...'}
+                    {zapretStatus === 'stopping' && 'Отключение...'}
                   </div>
+                </div>
 
-                  {/* CUSTOM STRATEGY DROPDOWN */}
-                  <div ref={dropdownRef} className="control-group">
-                    <label className="form-label" htmlFor="strategy_select">Активный режим обхода</label>
-                    <div 
-                      className={`custom-select-trigger ${isDropdownOpen ? 'open' : ''}`}
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <span>{selectedStrategy || 'Не найдено'}</span>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {/* Animated Power Button Container */}
+                <div className="power-btn-container">
+                  <button 
+                    id="toggle_zapret_btn"
+                    className={`power-btn ${zapretStatus}`}
+                    onClick={zapretStatus === 'running' ? handleStop : () => handleStart()}
+                    disabled={zapretStatus === 'starting' || zapretStatus === 'stopping'}
+                    title={zapretStatus === 'running' ? 'Отключить обход' : 'Включить обход'}
+                  >
+                    <svg viewBox="0 0 24 24">
+                      <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+
+                  {/* Pulsating Ripple Rings for running state */}
+                  <div className="power-ripple-ring"></div>
+                  <div className="power-ripple-ring"></div>
+                  <div className="power-ripple-ring"></div>
+
+                  {/* Rotating Arc Ring for starting/stopping state */}
+                  <div className="power-spin-ring"></div>
+                </div>
+
+                {/* Strategy Selector Dropdown */}
+                <div ref={dropdownRef} className="control-group" style={{ maxWidth: '100%' }}>
+                  <label className="form-label" htmlFor="strategy_select" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '14px', height: '14px', color: '#fbbf24' }}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    Активный режим обхода (батник)
+                  </label>
+                  <div 
+                    className={`custom-select-trigger ${isDropdownOpen ? 'open' : ''}`}
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    style={{ cursor: 'pointer', padding: '12px 18px', background: 'rgba(8, 10, 15, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>{selectedStrategy || 'Режимы не найдены'}</span>
                     </div>
-                    {isDropdownOpen && strategies.length > 0 && (
-                      <div className="custom-select-menu">
-                        {strategies.map((strat) => (
-                          <div 
-                            key={strat} 
-                            className={`custom-select-option ${selectedStrategy === strat ? 'selected' : ''}`}
-                            onClick={() => handleStrategyChange(strat)}
-                          >
-                            {strat}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                   </div>
+                  {isDropdownOpen && strategies.length > 0 && (
+                    <div className="custom-select-menu">
+                      {strategies.map((strat) => (
+                        <div 
+                          key={strat} 
+                          className={`custom-select-option ${selectedStrategy === strat ? 'selected' : ''}`}
+                          onClick={() => handleStrategyChange(strat)}
+                        >
+                          {strat}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </section>
+
+              {/* Quick Info Grid below Hero Card */}
+              <div className="dashboard-stats-grid">
+                <div className="dashboard-stat-card">
+                  <div className="dashboard-stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '18px', height: '18px' }}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Драйвер перехвата</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>WinDivert64.sys</div>
+                  </div>
+                </div>
+
+                <div className="dashboard-stat-card">
+                  <div className="dashboard-stat-icon" style={{ background: isAdmin ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)', borderColor: isAdmin ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)', color: isAdmin ? '#34d399' : '#f87171' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '18px', height: '18px' }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Права доступа</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>{isAdmin ? 'Администратор' : 'Обычные (Ограничено)'}</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </>
         )}
