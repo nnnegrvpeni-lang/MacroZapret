@@ -1,0 +1,65 @@
+{
+  "name": "macrozapret",
+  "private": true,
+  "version": "1.0.0",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on http://127.0.0.1:5173 && electron .",
+    "build": "tsc && vite build",
+    "package": "npm run build && electron-builder",
+    "publish": "npm run build && electron-builder --publish always"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "electron-updater": "^6.8.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.4.5",
+    "vite": "^5.3.1",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.drivera.macrozapret",
+    "productName": "MacroZapret",
+    "icon": "assets/icon.ico",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "nnnegrvpeni-lang",
+      "repo": "MacroZapret"
+    },
+    "win": {
+      "target": "nsis",
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "MacroZapret",
+      "uninstallDisplayName": "MacroZapret",
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "include": "assets/installer.nsh",
+      "warningsAsErrors": false
+    }
+  }
+}
