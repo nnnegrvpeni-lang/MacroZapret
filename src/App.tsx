@@ -1539,24 +1539,18 @@ export default function App() {
                   </p>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                    <label className="custom-toggle-label" onClick={() => setEnableGlow(!enableGlow)}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-main)' }}>Включить неоновую подсветку (glow)</span>
-                      <input 
-                        type="checkbox" 
-                        checked={enableGlow} 
-                        onChange={(e) => setEnableGlow(e.target.checked)} 
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
+                      <div className={`custom-switch ${enableGlow ? 'checked' : ''}`}>
+                        <div className="custom-switch-thumb"></div>
+                      </div>
                     </label>
 
-                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '12px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}>
+                    <label className="custom-toggle-label" onClick={() => setShowAmbientOrbs(!showAmbientOrbs)}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-main)' }}>Анимированный фон (Aurora Orbs)</span>
-                      <input 
-                        type="checkbox" 
-                        checked={showAmbientOrbs} 
-                        onChange={(e) => setShowAmbientOrbs(e.target.checked)} 
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
+                      <div className={`custom-switch ${showAmbientOrbs ? 'checked' : ''}`}>
+                        <div className="custom-switch-thumb"></div>
+                      </div>
                     </label>
                   </div>
                 </section>

@@ -199,7 +199,8 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 40px 48px;
   background: var(--bg-app);
 }
@@ -697,6 +698,58 @@ body {
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--text-secondary);
+}
+
+/* Custom Neon Checkbox Toggle Switch */
+.custom-toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.custom-toggle-label:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.custom-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.custom-switch.checked {
+  background: var(--primary, #3b82f6);
+  border-color: var(--primary, #3b82f6);
+  box-shadow: 0 0 12px var(--primary-glow, rgba(59, 130, 246, 0.4));
+}
+
+.custom-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-switch.checked .custom-switch-thumb {
+  transform: translateX(20px);
 }
 
 .custom-select-option {
